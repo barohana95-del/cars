@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ניתוח מכירות | Admin Panel 📈</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap');
+        body { 
+            font-family: 'Heebo', sans-serif; 
+            background: url('https://r2.fivemanage.com/Q1DlqnUvyjtM7FsgFJLZn/lamborghini.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            padding: 0;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5); 
+            z-index: -1;
+        }
+
+        .frosted-glass {
+            backdrop-filter: blur(8px) saturate(180%);
+            -webkit-backdrop-filter: blur(8px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.75); 
+        }
+        
+        th, td { padding: 12px 16px; text-align: right; }
+        th { background-color: #1D4ED8; color: white; }
+        
+        #nav-dropdown { display: none; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#1D4ED8',
+                        'secondary': '#FBBF24',
+                        'danger': '#EF4444',
+                    },
+                }
+            }
+        }
+        
+        // --- פונקציות ניווט ושליטה כלליות ---
+        function toggleNavDropdown() {
+          const dropdown = document.getElementById("nav-dropdown");
+          const isShown = dropdown.classList.contains("scale-100");
+          if (isShown) {
+            dropdown.classList.remove("scale-100", "opacity-100");
+            dropdown.classList.add("scale-95", "opacity-0");
+            setTimeout(() => { dropdown.style.display = "none"; }, 300);
+          } else {
+            dropdown.style.display = "block";
+            dropdown.offsetWidth; 
+            dropdown.classList.remove("scale-95", "opacity-0");
+            dropdown.classList.add("scale-100", "opacity-100");
+          }
+        }
+        
+        function exitAdmin(){
+            localStorage.removeItem('userRole');
+            window.location.href = 'index.html'; 
+        }
+
+        window.addEventListener('click', function(e) {
+          const dropdown = document.getElementById("nav-dropdown");
+          const navBtn = document.getElementById("nav-menu-btn");
+          // בדיקה גם על כפתור הדאשבורד
+          const dashboardBtn = document.getElementById("dashboard-btn"); 
+          if (navBtn && dropdown && dashboardBtn && 
+              !navBtn.closest('.relative').contains(e.target) && 
+              !dashboardBtn.contains(e.target) && 
+              dropdown.classList.contains("scale-100")) {
+            toggleNavDropdown();
+          }
+        });
+        
+        // --- לוגיקת אנליטיקה ---
+        function toggleHotManufacturer(make) {
+            let hotManufacturers = JSON.parse(localStorage.getItem("hotManufacturers")) || {};
+            
+            if (hotManufacturers[make] === true) {
+                delete hotManufacturers[make];
+            } else {
+                hotManufacturers[make] = true;
+            }
+            
+            localStorage.setItem("hotManufacturers", JSON.stringify(hotManufacturers));
+            renderSalesAnalytics(); 
+            
+            if (window.opener && window.opener.location.href.includes('index.html')) {
+                 window.opener.location.reload(); 
+            }
+        }
+
+        // 💡 פונקציה חדשה לאיפוס נתונים ספציפיים של העמוד
+        function resetPageData() {
+            if (confirm("האם אתה בטוח שברצונך לאפס את נתוני המכירות (soldData) וסימוני ה'Hot' (hotManufacturers)?")) {
+                // מוחק את המפתחות הספציפיים לעמוד זה
+                localStorage.removeItem("soldData");
+                localStorage.removeItem("hotManufacturers");
+                
+                // טוען מחדש את הטבלה כדי לשקף את הנתונים המאופסים
+                renderSalesAnalytics();
+
+                // אופציונלי: ריענון הדף הראשי אם הוא פתוח
+                if (window.opener && window.opener.location.href.includes('index.html')) {
+                    window.opener.location.reload(); 
+                }
+
+                alert("נתוני המכירות והסימונים אופסו בהצלחה!");
+            }
+        }
+
+        function renderSalesAnalytics() {
+            const userRole = localStorage.getItem('userRole');
+            const analyticsContainer = document.getElementById("analytics-container");
+            const accessDeniedMessage = document.getElementById("access-denied-message");
+            const tbody = document.getElementById("sales-table-body");
+            const noDataMessage = document.getElementById("no-data-message");
+
+            tbody.innerHTML = '';
+            
+            if (userRole !== 'SuperAdmin') {
+                analyticsContainer.classList.add('hidden');
+                accessDeniedMessage.classList.remove('hidden');
+                return; 
+            }
+            
+            accessDeniedMessage.classList.add('hidden');
+            analyticsContainer.classList.remove('hidden');
+
+            const soldData = JSON.parse(localStorage.getItem("soldData")) || {};
+            const hotManufacturers = JSON.parse(localStorage.getItem("hotManufacturers")) || {};
+
+            const salesArray = Object.keys(soldData).map(make => ({
+                make: make,
+                count: soldData[make]
+            }));
+
+            const sortedSales = salesArray.sort((a, b) => b.count - a.count);
+
+            if (sortedSales.length === 0) {
+                noDataMessage.classList.remove('hidden');
+                return;
+            } else {
+                 noDataMessage.classList.add('hidden');
+            }
+
+            sortedSales.forEach(car => {
+                const make = car.make;
+                const isHot = hotManufacturers[make] === true;
+                
+                const row = tbody.insertRow();
+                row.className = 'hover:bg-gray-100 transition duration-150';
+                
+                let cellMake = row.insertCell();
+                cellMake.textContent = make;
+                cellMake.className = 'font-semibold text-gray-900';
+
+                let cellCount = row.insertCell();
+                cellCount.textContent = car.count;
+                cellCount.className = 'text-lg font-bold text-primary';
+                
+                let cellAction = row.insertCell();
+                const btnText = isHot ? 'הסר Hot 🔥' : 'סמן Hot';
+                const btnClass = isHot ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 hover:bg-gray-500';
+                
+                cellAction.innerHTML = `
+                    <button onclick="toggleHotManufacturer('${make.replace(/'/g, "\\'")}')" 
+                                 class="px-3 py-1 text-sm text-white rounded-full transition duration-300 ${btnClass}">
+                        ${btnText}
+                    </button>
+                `;
+                cellAction.className = 'text-center';
+            });
+        }
+        
+        // --- לוגיקת אתחול דף וניווט SuperAdmin ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const userRole = localStorage.getItem('userRole');
+            
+            if (userRole !== 'SuperAdmin') {
+                renderSalesAnalytics(); 
+                return;
+            }
+            
+            const adminLoginLink = document.getElementById("admin-login-link");
+            const salesAnalyticsLink = document.getElementById("sales-analytics-link");
+            const manageApplicationsLink = document.getElementById("manage-applications-link");
+            const exitBtnDropdown = document.getElementById("exit-btn-dropdown");
+            const jobApplicationLink = document.getElementById("job-application-link"); 
+            const dashboardBtn = document.getElementById("dashboard-btn");
+
+            // 💡 מציג את כפתור ה-Dashboard
+            dashboardBtn.classList.remove("hidden");
+
+            // הסתרות בסיסיות למשתמש מחובר
+            adminLoginLink.classList.add("hidden"); 
+            jobApplicationLink.classList.add("hidden"); 
+            exitBtnDropdown.classList.remove("hidden");
+            
+            // הגדרת קישורי הניהול הנותרים בתוך הדרופדאון
+            
+            // קישור 1: ניהול מועמדויות (משתמשים ב-salesAnalyticsLink)
+            salesAnalyticsLink.classList.remove("hidden");
+            salesAnalyticsLink.textContent = '💼 ניהול מועמדויות';
+            salesAnalyticsLink.href = 'applications.html';
+            
+            // קישור 2: הדף הנוכחי מוסתר, נשתמש ב-manageApplicationsLink עבור ניהול רכבים
+            manageApplicationsLink.classList.remove("hidden"); 
+            manageApplicationsLink.textContent = '🚗 ניהול רכבים';
+            manageApplicationsLink.href = 'index.html';
+            
+            renderSalesAnalytics();
+        });
+    </script>
+</head>
+<body class="min-h-screen">
+
+<header class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-center sm:justify-between items-center">
+    <h1 class="text-3xl font-extrabold text-primary tracking-tight mb-4 sm:mb-0 text-center drop-shadow-md">
+        פאנל ניתוח מכירות 📈
+    </h1>
+    <div id="buttons-top" class="flex items-center gap-2 relative">
+      
+      <a id="dashboard-btn" href="super_admin_dashboard.html" class="px-5 py-2 bg-secondary text-white font-medium rounded-full shadow-lg hover:bg-amber-600 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-secondary focus:ring-opacity-50 flex items-center hidden">
+        <svg class="w-5 h-5 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2.586a1 1 0 01.293-.707l2-2a1 1 0 011.414 0l2 2a1 1 0 01.293.707V17a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+        <span>לוח בקרה</span>
+      </a>
+      
+      <div class="relative">
+        <button id="nav-menu-btn" onclick="toggleNavDropdown()" class="px-5 py-2 bg-primary text-white font-medium rounded-full shadow-lg hover:bg-blue-800 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 flex items-center">
+          <span>תפריט ניווט</span>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+
+        <div id="nav-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 z-30 transition duration-300 origin-top-right transform scale-95 opacity-0">
+          
+          <a id="sales-analytics-link" href="#" class="w-full text-right block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-150 hidden"></a>
+          <a id="manage-applications-link" href="#" class="w-full text-right block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-150 hidden"></a>
+
+          <button id="admin-login-link" onclick="showLogin(); toggleNavDropdown()" class="w-full text-right block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-150 hidden">
+            🔑 התחברות לפאנל ניהול
+          </button>
+          
+          <a id="job-application-link" href="job.html" target="_blank" class="w-full text-right block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-150 border-t border-gray-100 hidden">
+            📝 הגשת מועמדות
+          </a>
+          
+          <button id="exit-btn-dropdown" onclick="exitAdmin(); toggleNavDropdown()" class="w-full text-right block px-4 py-2 text-sm text-danger hover:bg-red-50 transition duration-150 border-t border-gray-100 hidden">
+            🔴 יציאה מהפאנל
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto py-8">
+    
+    <div id="access-denied-message" class="hidden p-10 bg-red-100 border-r-8 border-danger text-red-800 rounded-2xl shadow-xl frosted-glass">
+        <h2 class="text-2xl font-bold mb-3 text-danger">⛔ גישה נדחתה</h2>
+        <p class="text-gray-800">אין לך הרשאות לצפות בנתוני המכירות. עמוד זה מיועד למשתמשי **SuperAdmin** בלבד.</p>
+    </div>
+
+    <div id="analytics-container" class="rounded-2xl shadow-2xl overflow-hidden border border-gray-200 frosted-glass hidden">
+        
+        <div class="p-4 bg-white/90 border-b border-gray-200 flex justify-end">
+            <button onclick="resetPageData()" class="px-4 py-2 bg-danger text-white font-medium rounded-lg shadow-md hover:bg-red-600 transition duration-300 transform hover:scale-[1.02] focus:outline-none focus:ring-4 focus:ring-danger focus:ring-opacity-50 flex items-center text-sm">
+                <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0l-2.5-2.5M16 4v5h.582m-15.356 2A8.001 8.001 0 0119.418 9m0 0l2.5-2.5"></path></svg>
+                איפוס נתונים (עמוד זה)
+            </button>
+        </div>
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-primary">
+                <tr>
+                    <th class="py-3 px-6 text-xs font-bold uppercase tracking-wider">סוג רכב (יצרן)</th>
+                    <th class="py-3 px-6 text-xs font-bold uppercase tracking-wider">כמות מכירות 🏷️</th>
+                    <th class="py-3 px-6 text-xs font-bold uppercase tracking-wider rounded-tl-xl">פעולה</th>
+                </tr>
+            </thead>
+            <tbody id="sales-table-body" class="bg-white/90 divide-y divide-gray-200">
+            </tbody>
+        </table>
+
+        <p id="no-data-message" class="p-6 text-center text-gray-700 font-medium hidden">
+            אין עדיין נתונים על מכירות. לחץ על "נמכר" בדף הראשי כדי להתחיל. 
+        </p>
+    </div>
+</main>
+
+</body>
+</html>

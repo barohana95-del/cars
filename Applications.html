@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניהול מועמדויות | Marketplace 📋</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap');
+  body { font-family: 'Heebo', sans-serif; }
+  body {
+    background: url('https://r2.fivemanage.com/Q1DlqnUvyjtM7FsgFJLZn/lamborghini.jpg') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    position: relative;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: -1;
+  }
+</style>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          'primary': '#1D4ED8',
+          'secondary': '#FBBF24',
+          'danger': '#EF4444',
+          'background': '#F9FAFB',
+        },
+      }
+    }
+  }
+</script>
+</head>
+<body class="min-h-screen">
+
+<header class="bg-white/90 backdrop-blur-md shadow-md sticky top-0 z-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-center sm:justify-between items-center">
+    <h1 class="text-3xl font-extrabold text-purple-600 tracking-tight mb-4 sm:mb-0 text-center">
+      ניהול מועמדויות <span class="text-secondary">Market</span>
+    </h1>
+    
+    <div id="admin-buttons" class="flex items-center gap-2 hidden">
+        <a id="manage-cars-btn" href="index.html" class="px-5 py-2 bg-primary text-white font-medium rounded-full shadow-lg hover:bg-blue-800 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50">
+            ניהול רכבים
+        </a>
+        
+        <button id="exit-btn" onclick="exitAdmin()" class="px-5 py-2 bg-danger text-white font-medium rounded-full shadow-lg hover:bg-red-600 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-danger focus:ring-opacity-50">
+            יציאה מהפאנל
+        </button>
+    </div>
+    
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div id="content-area">
+        </div>
+
+</main>
+
+<script>
+// ---------- פונקציות בסיסיות וניהול מועמדויות ----------
+let applications = JSON.parse(localStorage.getItem("applications")) || [];
+
+function saveData() {
+    localStorage.setItem("applications", JSON.stringify(applications));
+}
+
+function exitAdmin(){
+    // Clear the user's role
+    localStorage.removeItem('userRole');
+    // Redirect to the home page, which will load in public view
+    window.location.href = 'index.html'; 
+}
+
+function deleteApplication(index){
+    applications.splice(index,1);
+    saveData();
+    showApplications(); // Refresh the list
+}
+
+function showApplications(){
+    const contentArea = document.getElementById("content-area");
+    const userRole = localStorage.getItem('userRole');
+    
+    // Check if user is SuperAdmin
+    if (userRole !== 'SuperAdmin') {
+        // If not logged in or not SuperAdmin, display a denial message and hide admin buttons
+        document.getElementById('admin-buttons').style.display = 'none';
+        contentArea.innerHTML = `
+            <div class="bg-white p-10 rounded-xl shadow-2xl text-center">
+                <h2 class="text-3xl font-bold text-danger mb-4">גישה נדחתה!</h2>
+                <p class="text-gray-600 mb-6">דף זה מיועד למנהלים בעלי הרשאות מיוחדות בלבד.</p>
+                <a href="index.html" class="px-6 py-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-blue-800 transition duration-300">
+                    חזור להתחברות
+                </a>
+            </div>
+        `;
+        return;
+    }
+
+    // If SuperAdmin, display the applications management panel
+    document.getElementById('admin-buttons').style.display = 'flex'; // Ensure buttons are visible
+
+    const appContainer = document.createElement("div");
+    appContainer.className = "bg-white p-6 md:p-8 rounded-xl shadow-2xl border border-gray-100";
+    appContainer.innerHTML = `<h2 class="text-2xl font-bold mb-6 text-center text-purple-600 border-b pb-2">רשימת מועמדויות שהוגשו 📋</h2><div id="applications-list" class="space-y-3"></div>`;
+    contentArea.innerHTML = '';
+    contentArea.appendChild(appContainer);
+
+    const list = document.getElementById("applications-list");
+
+    if(applications.length === 0){
+        list.innerHTML = "<p class='text-gray-500'>אין מועמדויות שהוגשו עדיין.</p>";
+        return;
+    }
+
+    applications.forEach((app,index)=>{
+        const div = document.createElement("div");
+        div.className = "p-3 bg-gray-50 border border-gray-200 rounded-lg";
+        div.innerHTML = `
+            <p><span class="font-semibold">שם:</span> ${app.fullname}</p>
+            <p><span class="font-semibold">אימייל:</span> ${app.email}</p>
+            <p><span class="font-semibold">טלפון:</span> ${app.phone}</p>
+            <p><span class="font-semibold">משרה:</span> ${app.position}</p>
+            <p><span class="font-semibold">ניסיון:</span> ${app.experience || '-'}</p>
+            <p><span class="font-semibold">מוטיבציה:</span> ${app.motivation || '-'}</p>
+            <p><span class="font-semibold">זמינות:</span> ${app.startDate || '-'}</p>
+            <p><span class="font-semibold">כישורים נוספים:</span> ${app.skills || '-'}</p>
+            <button onclick="deleteApplication(${index})" class="mt-2 px-3 py-1 bg-danger text-white rounded-md hover:bg-red-600 transition duration-300 text-sm">מחק</button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', showApplications);
+</script>
+</body>
+</html>

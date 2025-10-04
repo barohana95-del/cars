@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperAdmin Dashboard 👑</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap');
+        
+        /* 💡 עיצוב כללי - רקע, תמונה ושכבה כהה */
+        body { 
+            font-family: 'Heebo', sans-serif; 
+            background: url('https://r2.fivemanage.com/Q1DlqnUvyjtM7FsgFJLZn/lamborghini.jpg') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5); /* שכבה כהה מעל התמונה */
+            z-index: -1;
+        }
+
+        /* 💡 אפקט ה-Frosted Glass */
+        .frosted-glass {
+            backdrop-filter: blur(8px) saturate(180%);
+            -webkit-backdrop-filter: blur(8px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.75); /* שקוף מעט */
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-8px) scale(1.04);
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.3); 
+        }
+
+        /* כדי לוודא שהכותרת נמצאת מעל הרקע הכללי */
+        header {
+            z-index: 10;
+        }
+    </style>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#1D4ED8',
+                        'secondary': '#FBBF24',
+                        'danger': '#EF4444',
+                    },
+                }
+            }
+        }
+
+        function exitAdmin(){
+            localStorage.removeItem('userRole');
+            window.location.href = 'index.html'; 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userRole = localStorage.getItem('userRole');
+            if (userRole !== 'SuperAdmin') {
+                alert('אין לך הרשאות גישה לדף זה.');
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</head>
+<body class="min-h-screen">
+
+<header class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <h1 class="text-3xl font-extrabold text-primary tracking-tight drop-shadow-md">
+            פאנל ניהול ראשי | SuperAdmin 👑
+        </h1>
+        <button onclick="exitAdmin()" class="px-5 py-2 bg-danger text-white font-medium rounded-full shadow-lg hover:bg-red-600 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-danger focus:ring-opacity-50">
+            🔴 יציאה מהפאנל
+        </button>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="p-8 rounded-3xl shadow-2xl border border-gray-100 frosted-glass">
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-10 border-b-4 border-primary/50 pb-3 text-center">מרכז הבקרה 🚀</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <a href="index.html" class="card block p-8 bg-white border border-gray-100 rounded-2xl shadow-xl text-center hover:shadow-2xl ring-4 ring-transparent hover:ring-primary/50">
+                <div class="text-7xl mb-4 text-primary">🚗</div>
+                <h3 class="text-2xl font-bold text-primary mb-3">ניהול רכבים ומלאי</h3>
+                <p class="text-gray-600 font-medium">הוספה, עריכה ומחיקה של רכבים למכירה. הפאנל המוכר.</p>
+            </a>
+
+            <a href="applications.html" class="card block p-8 bg-white border border-gray-100 rounded-2xl shadow-xl text-center hover:shadow-2xl ring-4 ring-transparent hover:ring-primary/50">
+                <div class="text-7xl mb-4 text-secondary">💼</div>
+                <h3 class="text-2xl font-bold text-primary mb-3">ניהול מועמדויות</h3>
+                <p class="text-gray-600 font-medium">צפייה וטיפול במועמדויות שהוגשו לתפקידים בחברה.</p>
+            </a>
+
+            <a href="sales_analytics.html" class="card block p-8 bg-white border border-gray-100 rounded-2xl shadow-xl text-center hover:shadow-2xl ring-4 ring-transparent hover:ring-primary/50">
+                <div class="text-7xl mb-4 text-green-600">📈</div>
+                <h3 class="text-2xl font-bold text-primary mb-3">ניתוח מכירות</h3>
+                <p class="text-gray-600 font-medium">דוחות, נתוני מכירות וסטטיסטיקה על דגמים מבוקשים.</p>
+            </a>
+
+        </div>
+    </div>
+</main>
+
+</body>
+</html>
