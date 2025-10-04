@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>רכבים יד שנייה | Marketplace 🚗</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap');
+  body { font-family: 'Heebo', sans-serif; }
+  body {
+    background: url('https://r2.fivemanage.com/Q1DlqnUvyjtM7FsgFJLZn/lamborghini.jpg') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: -1;
+  }
+  #login-container { display: none; }
+  #cars-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    justify-items: center;
+  }
+  #nav-dropdown {
+    display: none;
+  }
+
+  /* Keyframe for fade-in effect */
+  @keyframes fadeInSlideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Keyframe for pop-in effect */
+  @keyframes popIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  /* Tailwind pulse animation definition (for Hot tag) */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
+  }
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Apply animation to car cards */
+  .car-card-animated {
+    animation: fadeInSlideUp 0.6s ease-out forwards;
+    opacity: 0;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    will-change: transform, box-shadow;
+  }
+  
+  /* אפקט הזום וההרמה בריחוף */
+  .car-card-animated:hover {
+    transform: translateY(-8px) scale(1.04); 
+    box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2); 
+  }
+
+
+  /* Apply animation to form container and login box */
+  .form-animated, .login-animated {
+    animation: popIn 0.5s ease-out forwards;
+    opacity: 0;
+  }
+
+  /* Frosted glass effect */
+  .frosted-glass {
+    backdrop-filter: blur(8px) saturate(180%);
+    -webkit-backdrop-filter: blur(8px) saturate(180%);
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+</style>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          'primary': '#1D4ED8',
+          'secondary': '#FBBF24',
+          'danger': '#EF4444',
+          'background': '#F9FAFB',
+        },
+      }
+    }
+  }
+</script>
+</head>
+<body class="min-h-screen">
+
+<header class="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-center sm:justify-between items-center">
+    <h1 class="text-3xl font-extrabold text-primary tracking-tight mb-4 sm:mb-0 text-center drop-shadow-md">
+      רכבים יד שנייה <span class="text-secondary">Market</span>
+    </h1>
+    <div id="buttons-top" class="flex items-center gap-2 relative">
+      
+      <div class="relative">
+        <button id="nav-menu-btn" onclick="toggleNavDropdown()" class="px-5 py-2 bg-primary text-white font-medium rounded-full shadow-lg hover:bg-blue-800 transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 flex items-center">
+          <span>תפריט ניווט</span>
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+        </button>
+
+        <div id="nav-dropdown" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl py-2 z-30 transition duration-300 origin-top-right transform scale-95 opacity-0">
+          
+          <a id="sales-analytics-link" href="sales_analytics.html" class="w-full text-right block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-150 hidden">
+             📈 ניתוח מכירות
+          </a>
+
+          <a id="manage-applications-link" href="applications.html" class="w-full text-right block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-150 hidden">
+             💼 ניהול מועמדויות
+          </a>
+
+          <button id="admin-login-link" onclick="showLogin(); toggleNavDropdown()" class="w-full text-right block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-150">
+            🔑 התחברות לפאנל ניהול
+          </button>
+          
+          <a id="job-application-link" href="job.html" target="_blank" class="w-full text-right block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition duration-150 border-t border-gray-100">
+            📝 הגשת מועמדות
+          </a>
+          
+          <button id="exit-btn-dropdown" onclick="exitAdmin(); toggleNavDropdown()" class="w-full text-right block px-4 py-2 text-sm text-danger hover:bg-red-50 transition duration-150 border-t border-gray-100 hidden">
+            🔴 יציאה מהפאנל
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+  <div class="form-container mb-8 hidden" id="form-container">
+    <div class="p-6 md:p-8 rounded-3xl shadow-2xl border border-gray-100 frosted-glass form-animated">
+      <h2 class="text-2xl font-bold mb-6 text-center text-primary border-b pb-2">ניהול רכבים 🛠️</h2>
+
+      <form id="car-form" class="space-y-4 mt-4">
+        <input type="text" id="make" placeholder="יצרן (Ferrari)" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition duration-200">
+        <label class="block text-sm font-medium text-gray-700">Upgrades:</label>
+        <select id="upgrade" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition duration-200">
+          <option value="A+">A+</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+        <label class="block text-sm font-medium text-gray-700">Suspensions level:</label>
+        <select id="suspension" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition duration-200">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+        <input type="number" id="price" placeholder="מחיר (₪)" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition duration-200">
+        <label class="block text-sm font-medium text-gray-700">תמונת רכב:</label>
+        <input type="file" id="img" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-blue-800 cursor-pointer">
+        <textarea id="notes" placeholder="הערות חשובות (מצב מכני, קילומטראז'...)" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition duration-200 resize-none"></textarea>
+        <button type="submit" class="w-full p-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-blue-800 transition duration-300">
+          הוסף רכב חדש +
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <div class="mb-6 flex justify-end">
+    <label for="sort-select" class="flex items-center text-sm font-medium text-white/90 drop-shadow-lg">
+        סדר לפי:
+        <select id="sort-select" onchange="sortCars(this.value)" class="mr-1 p-1 border border-gray-300 rounded-lg bg-white/90 backdrop-blur-sm text-sm text-gray-800 font-normal shadow-md transition duration-200 focus:ring-primary focus:border-primary">
+            <option value="default">ברירת מחדל (חדש ביותר)</option>
+            <option value="price_low_to_high">מחיר: זול ליקר</option>
+            <option value="price_high_to_low">מחיר: יקר לזול</option>
+        </select>
+    </label>
+  </div>
+
+  <div id="cars-container"></div>
+</main>
+
+<div class="login-container fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" id="login-container">
+  <div class="login-box p-6 rounded-3xl w-full max-w-sm shadow-2xl frosted-glass login-animated">
+    <h2 class="text-2xl font-bold mb-6 text-center text-primary">התחברות למערכת 🔑</h2>
+    <div class="space-y-4">
+      <input type="text" id="admin-username" placeholder="שם משתמש" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition duration-200">
+      <input type="password" id="admin-password" placeholder="סיסמה" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary transition duration-200">
+    </div>
+    <button onclick="login()" class="mt-6 w-full p-3 bg-primary text-white font-semibold rounded-lg shadow-md hover:bg-blue-800 transition duration-300">
+      התחבר
+    </button>
+    <button onclick="closeLogin()" class="mt-3 w-full p-3 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition duration-300">
+      סגור
+    </button>
+  </div>
+</div>
+
+<script>
+let cars = JSON.parse(localStorage.getItem("cars")) || [];
+let soldData = JSON.parse(localStorage.getItem("soldData")) || {}; 
+let applications = JSON.parse(localStorage.getItem("applications")) || [];
+let hotManufacturers = JSON.parse(localStorage.getItem("hotManufacturers")) || {}; 
+
+const HOT_SALES_THRESHOLD = 10; 
+
+
+function initializeCarOrder(carList) {
+    let maxOriginalIndex = -1;
+    if (carList.length > 0) {
+        maxOriginalIndex = Math.max(...carList.map(c => c.originalIndex !== undefined ? c.originalIndex : -1));
+    }
+    
+    return carList.map((car, index) => {
+        if (car.originalIndex === undefined || car.originalIndex < 0) {
+             maxOriginalIndex++;
+             car.originalIndex = maxOriginalIndex;
+        }
+        return car;
+    });
+}
+
+cars = initializeCarOrder(cars);
+let initialCarOrder = [...cars]; 
+let currentSortedCars = [...initialCarOrder];
+
+const adminCredentials = [
+    { username: "admin", password: "1234", role: "CarAdmin" },
+    { username: "super", password: "5678", role: "SuperAdmin" }
+];
+let userRole = null;
+let editIndex = null;
+
+function saveData() {
+  localStorage.setItem("cars", JSON.stringify(cars));
+  localStorage.setItem("soldData", JSON.stringify(soldData)); 
+  localStorage.setItem("applications", JSON.stringify(applications));
+  localStorage.setItem("hotManufacturers", JSON.stringify(hotManufacturers)); 
+}
+
+// ---------- מיון רכבים ----------
+function sortCars(sortBy) {
+    if (!cars.length) {
+        renderCars(); 
+        return;
+    }
+    currentSortedCars = [...cars];
+
+    switch (sortBy) {
+        case 'price_low_to_high':
+            currentSortedCars.sort((a, b) => a.price - b.price);
+            break;
+        case 'price_high_to_low':
+            currentSortedCars.sort((a, b) => b.price - a.price);
+            break;
+        case 'default':
+        default:
+            currentSortedCars.sort((a, b) => b.originalIndex - a.originalIndex);
+            break;
+    }
+
+    renderCars();
+}
+
+
+// ---------- רכבים וניהול רכבים ----------
+
+function renderCars() {
+  const container = document.getElementById("cars-container");
+  container.innerHTML = "";
+  const canEdit = userRole === 'CarAdmin' || userRole === 'SuperAdmin';
+  
+  hotManufacturers = JSON.parse(localStorage.getItem("hotManufacturers")) || {};
+
+  if (currentSortedCars.length === 0) {
+      container.innerHTML = '<p class="text-center text-white/90 text-2xl mt-10 p-5 bg-black/50 rounded-xl">אין רכבים במלאי כרגע 😔</p>';
+      return;
+  }
+  
+  currentSortedCars.forEach((car, index)=>{
+    const originalIndex = car.originalIndex; 
+    const carMake = car.make; 
+    
+    // **1. לוגיקת בדיקת Hot**
+    const salesCount = soldData[carMake] || 0;
+    const isHotBySales = salesCount >= HOT_SALES_THRESHOLD;
+    const isManuallyHot = hotManufacturers[carMake] === true; 
+    
+    const isHot = isHotBySales || isManuallyHot;
+    
+    // **2. בניית תגית Hot (אם רלוונטי)**
+    let hotTag = '';
+    if (isHot) {
+        let hotText = isManuallyHot ? '🔥 Hot' : `🔥 Hot! (${salesCount}+ מכירות)`;
+        hotTag = `<span class="absolute top-3 right-3 bg-red-600 text-white text-xs font-bold px-3 py-2 rounded-full shadow-lg transform rotate-6 z-10 animate-pulse">${hotText}</span>`;
+    }
+    
+    const card = document.createElement("div");
+    
+    card.className="rounded-3xl shadow-xl overflow-hidden border border-gray-100 w-full car-card-animated relative"; 
+    card.style.backgroundColor = "rgba(255, 255, 255, 0.7)"; 
+    card.style.animationDelay = `${index * 0.05}s`; 
+
+    card.innerHTML=`
+      ${hotTag} 
+      <img src="${car.img||'https://via.placeholder.com/400x300/E5E7EB/A0AEC0?text=Car+Image'}" alt="${car.make}" class="w-full h-56 object-cover"> 
+      <div class="p-5">
+        <h2 class="text-xl font-bold text-primary mb-1 drop-shadow-sm">${carMake}</h2>
+        <p class="text-sm text-gray-700 mb-1">Upgrade: <span class="font-medium">${car.upgrade}</span> | Suspension: <span class="font-medium">${car.suspension}</span></p>
+        <p class="text-sm text-gray-700 mb-3">${car.notes || 'אין הערות'}</p>
+        <p class="text-2xl font-extrabold text-green-600 mb-3 drop-shadow-sm">₪${Number(car.price).toLocaleString()}</p>
+      </div>
+      <div class="flex justify-between items-center p-4 frosted-glass border-t border-gray-100">
+        
+        ${canEdit?`
+          <button class="px-4 py-1 text-sm bg-green-500 text-white rounded-full hover:bg-green-600 transition duration-300 transform hover:scale-105 font-bold" onclick="markAsSold(${originalIndex}, '${car.make.replace(/'/g, "\\'")}')">
+            ✅ נמכר
+          </button>
+          <div class="flex gap-2">
+            <button class="px-3 py-1 text-sm bg-yellow-400 text-white rounded-lg hover:bg-yellow-500 transition duration-300 transform hover:scale-105" onclick="editCarByOriginalIndex(${originalIndex})">ערוך</button>
+            <button class="px-3 py-1 text-sm bg-danger text-white rounded-lg hover:bg-red-600 transition duration-300 transform hover:scale-105" onclick="deleteCarByOriginalIndex(${originalIndex})">מחק</button>
+          </div>
+        `:`<div></div>`}
+        
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function markAsSold(originalIndex, make) {
+    if (!confirm(`האם אתה בטוח שברצונך לסמן את ${make} כנמכר?`)) {
+        return;
+    }
+    if (soldData[make]) {
+        soldData[make]++;
+    } else {
+        soldData[make] = 1;
+    }
+    deleteCarByOriginalIndex(originalIndex); 
+}
+
+function findRealIndex(originalIndex) {
+    return cars.findIndex(car => car.originalIndex === originalIndex);
+}
+
+function deleteCarByOriginalIndex(originalIndex){
+  const realIndex = findRealIndex(originalIndex);
+  if (realIndex > -1) {
+      cars.splice(realIndex, 1); 
+      const initialIndexToDelete = initialCarOrder.findIndex(car => car.originalIndex === originalIndex);
+      if (initialIndexToDelete > -1) {
+          initialCarOrder.splice(initialIndexToDelete, 1);
+      }
+      saveData();
+      sortCars(document.getElementById("sort-select").value); 
+  }
+}
+
+function editCarByOriginalIndex(originalIndex){
+  if (userRole !== 'CarAdmin' && userRole !== 'SuperAdmin') return;
+  const realIndex = findRealIndex(originalIndex);
+  if (realIndex === -1) return;
+  
+  const car = cars[realIndex];
+  document.getElementById("make").value = car.make;
+  document.getElementById("upgrade").value = car.upgrade;
+  document.getElementById("suspension").value = car.suspension;
+  document.getElementById("price").value = car.price;
+  document.getElementById("notes").value = car.notes;
+  
+  editIndex = originalIndex; 
+  document.querySelector("#car-form button").textContent = "שמור שינויים";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById("car-form").addEventListener("submit", function(e){
+  e.preventDefault();
+  const make = document.getElementById("make").value;
+  const upgrade = document.getElementById("upgrade").value;
+  const suspension = document.getElementById("suspension").value;
+  const price = document.getElementById("price").value;
+  const imgFile = document.getElementById("img").files[0];
+  const notes = document.getElementById("notes").value;
+
+  const reader = new FileReader();
+  reader.onloadend = function() {
+    let imgData = reader.result;
+    
+    if(editIndex !== null){
+      const realIndex = findRealIndex(editIndex);
+      if(realIndex > -1){
+        if(!imgFile){ imgData = cars[realIndex].img || ""; }
+        cars[realIndex] = { ...cars[realIndex], make, upgrade, suspension, price: Number(price), img: imgData, notes };
+      }
+      
+      const initialIndex = initialCarOrder.findIndex(car => car.originalIndex === editIndex);
+      if(initialIndex > -1){
+        initialCarOrder[initialIndex] = { ...initialCarOrder[initialIndex], make, upgrade, suspension, price: Number(price), img: imgData, notes };
+      }
+
+      editIndex = null;
+      document.querySelector("#car-form button").textContent = "הוסף רכב חדש +";
+    } else { 
+      let maxOriginalIndex = -1;
+      if (cars.length > 0) maxOriginalIndex = Math.max(maxOriginalIndex, ...cars.map(c => c.originalIndex));
+      if (initialCarOrder.length > 0) maxOriginalIndex = Math.max(maxOriginalIndex, ...initialCarOrder.map(c => c.originalIndex));
+
+      const newOriginalIndex = maxOriginalIndex + 1;
+      
+      const carData = { make, upgrade, suspension, price: Number(price), img: imgData, notes, originalIndex: newOriginalIndex };
+      cars.push(carData); 
+      initialCarOrder.push(carData); 
+
+      document.getElementById("sort-select").value = 'default';
+    }
+
+    saveData();
+    sortCars(document.getElementById("sort-select").value); 
+    document.getElementById("car-form").reset();
+  };
+
+  if(imgFile){ reader.readAsDataURL(imgFile); }
+  else{ reader.onloadend(); }
+});
+
+// ---------- לוגין וניווט ----------
+
+function toggleNavDropdown() {
+  const dropdown = document.getElementById("nav-dropdown");
+  const isShown = dropdown.classList.contains("scale-100");
+  if (isShown) {
+    dropdown.classList.remove("scale-100", "opacity-100");
+    dropdown.classList.add("scale-95", "opacity-0");
+    setTimeout(() => { dropdown.style.display = "none"; }, 300);
+  } else {
+    dropdown.style.display = "block";
+    dropdown.offsetWidth; 
+    dropdown.classList.remove("scale-95", "opacity-0");
+    dropdown.classList.add("scale-100", "opacity-100");
+  }
+}
+
+window.addEventListener('click', function(e) {
+  const dropdown = document.getElementById("nav-dropdown");
+  const navBtn = document.getElementById("nav-menu-btn");
+  if (!navBtn.closest('.relative').contains(e.target) && dropdown.classList.contains("scale-100")) {
+    toggleNavDropdown();
+  }
+});
+
+function showLogin(){ 
+  document.getElementById("login-container").style.display="flex"; 
+}
+function closeLogin(){ document.getElementById("login-container").style.display="none"; }
+
+function login(){
+  const username = document.getElementById("admin-username").value;
+  const password = document.getElementById("admin-password").value;
+  
+  const user = adminCredentials.find(c => c.username === username && c.password === password);
+
+  if(user){
+    localStorage.setItem('userRole', user.role);
+    
+    // הפנייה מיידית לדאשבורד עבור SuperAdmin
+    if (user.role === 'SuperAdmin') {
+        window.location.href = 'super_admin_dashboard.html'; 
+    } else {
+        window.location.reload(); 
+    }
+  } else { alert("שם משתמש או סיסמה שגויים!"); }
+}
+
+function exitAdmin(){
+  localStorage.removeItem('userRole');
+  window.location.href = 'index.html'; 
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    userRole = localStorage.getItem('userRole');
+    
+    // אלמנטים בדרופדאון
+    const adminLoginLink = document.getElementById("admin-login-link");
+    const salesAnalyticsLink = document.getElementById("sales-analytics-link");
+    const manageApplicationsLink = document.getElementById("manage-applications-link");
+    const exitBtnDropdown = document.getElementById("exit-btn-dropdown");
+    const jobApplicationLink = document.getElementById("job-application-link"); 
+    const formContainer = document.getElementById("form-container");
+
+    // הגדרות ברירת מחדל
+    salesAnalyticsLink.classList.add("hidden"); 
+    manageApplicationsLink.classList.add("hidden");
+    exitBtnDropdown.classList.add("hidden");
+    adminLoginLink.classList.remove("hidden"); 
+    jobApplicationLink.classList.remove("hidden"); 
+    formContainer.classList.add("hidden"); 
+
+    if (userRole === 'CarAdmin') {
+        // CarAdmin (דף ניהול רכבים בלבד)
+        formContainer.classList.remove("hidden"); 
+        adminLoginLink.classList.add("hidden"); 
+        exitBtnDropdown.classList.remove("hidden"); 
+        jobApplicationLink.classList.add("hidden"); 
+        
+        salesAnalyticsLink.classList.add("hidden"); 
+        manageApplicationsLink.classList.add("hidden"); 
+        
+    } else if (userRole === 'SuperAdmin') {
+        // SuperAdmin - כשהוא נמצא בדף 'ניהול רכבים' (index.html)
+        
+        adminLoginLink.classList.add("hidden"); 
+        exitBtnDropdown.classList.remove("hidden"); 
+        jobApplicationLink.classList.add("hidden");
+        // נשאר גלוי כדי לאפשר ניהול רכבים מתוך index.html
+        formContainer.classList.remove("hidden"); 
+
+        // 💡 הצגת הקישורים האחרים (ניהול מועמדויות וניתוח מכירות)
+        
+        // קישור 1: ניהול מועמדויות
+        manageApplicationsLink.classList.remove("hidden");
+        manageApplicationsLink.textContent = '💼 ניהול מועמדויות';
+        manageApplicationsLink.href = 'applications.html';
+        
+        // קישור 2: ניתוח מכירות
+        salesAnalyticsLink.classList.remove("hidden"); 
+        salesAnalyticsLink.textContent = '📈 ניתוח מכירות';
+        salesAnalyticsLink.href = 'sales_analytics.html';
+        
+    } else {
+        // לא מחובר
+        userRole = null;
+    }
+    
+    sortCars('default');
+});
+
+</script>
+</body>
+</html>
